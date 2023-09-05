@@ -31,5 +31,9 @@ export async function handler({ html }: HandlerContext) {
     </form>
 
     <div>${get("name")}</div>
+    <div>${get("name")}</div>
+    <div>${get("name")}</div>
+    <div>${get("name")}</div>
+    <div>${get("name")}</div>
   </div>`;
 }
