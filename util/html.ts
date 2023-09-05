@@ -1,11 +1,9 @@
-import { SignalId, SignalStore, SignalSymbol } from "../pages";
+import { SignalId, SignalStore, SignalSymbol } from "./store";
 
-export const html = (
-  strings: TemplateStringsArray,
-  ...interpolations: any[]
-) => {
-  let formId = 0;
-  let scripts = `<script>
+export const createHtmlRenderer = () => {
+  return (strings: TemplateStringsArray, ...interpolations: any[]) => {
+    let formId = 0;
+    let scripts = `<script>
     function set(key, value) {
       window.store[key] = value;
 
@@ -16,15 +14,15 @@ export const html = (
     }
   </script>`;
 
-  return (
-    strings.reduce((result, string, i) => {
-      const interpolation =
-        interpolations[i] !== undefined ? interpolations[i] : "";
+    return (
+      strings.reduce((result, string, i) => {
+        const interpolation =
+          interpolations[i] !== undefined ? interpolations[i] : "";
 
-      if (typeof interpolation === "function") {
-        if (string.endsWith('submit="')) {
-          string = `${string.slice(0, -8)} data-form-id="${formId}`;
-          scripts += `<script>
+        if (typeof interpolation === "function") {
+          if (string.endsWith('submit="')) {
+            string = `${string.slice(0, -8)} data-form-id="${formId}`;
+            scripts += `<script>
           document
             .querySelector('form[data-form-id="${formId}"]')
             .addEventListener('submit', () => {
@@ -34,35 +32,35 @@ export const html = (
             });
         </script>`;
 
-          formId++;
+            formId++;
 
-          return result + string;
-        } else {
+            return result + string;
+          } else {
+            return (
+              result +
+              string +
+              "(" +
+              interpolation.toString().replace(/"/g, "'") +
+              ")()"
+            );
+          }
+        } else if (interpolation[SignalSymbol]) {
+          if (!scripts.includes("window.store =")) {
+            scripts =
+              `<script>
+            window.store = ${JSON.stringify(interpolation[SignalStore])};
+            </script>` + scripts;
+          }
+
           return (
             result +
             string +
-            "(" +
-            interpolation.toString().replace(/"/g, "'") +
-            ")()"
+            `<div data-signal-id="${interpolation[SignalId]}">${interpolation}</div>`
           );
+        } else {
+          return result + string + interpolation;
         }
-      } else if (interpolation[SignalSymbol]) {
-        console.log("we are here");
-        if (!scripts.includes("window.store =")) {
-          scripts =
-            `<script>
-            window.store = ${JSON.stringify(interpolation[SignalStore])};
-            </script>` + scripts;
-        }
-
-        return (
-          result +
-          string +
-          `<div data-signal-id="${interpolation[SignalId]}">${interpolation}</div>`
-        );
-      } else {
-        return result + string + interpolation;
-      }
-    }, "") + scripts
-  );
+      }, "") + scripts
+    );
+  };
 };
