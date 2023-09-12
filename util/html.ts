@@ -4,12 +4,21 @@ export const createHtmlRenderer = () => {
   return (strings: TemplateStringsArray, ...interpolations: any[]) => {
     let formId = 0;
     let scripts = `<script>
+    function get(key) {
+      return window.store[key];
+    }
+
     function set(key, value) {
       window.store[key] = value;
 
-      document.querySelectorAll(\`div[data-signal-id="\${key}"]\`)
+      document.querySelectorAll(\`[data-signal-id*="\${key}"]\`)
         .forEach(el => {
-          el.innerText = value;
+          const signalId = el.dataset.signalId;
+          const mappings = signalId.split(',');
+          for (let mapping of mappings) {
+            const [attribute, key] = mapping.split(':');
+            el[attribute] = value;
+          }
         });
     }
   </script>`;
@@ -52,11 +61,21 @@ export const createHtmlRenderer = () => {
             </script>` + scripts;
           }
 
-          return (
-            result +
-            string +
-            `<div data-signal-id="${interpolation[SignalId]}">${interpolation}</div>`
-          );
+          if (string.endsWith('disabled="')) {
+            string = string.slice(0, -10);
+            return (
+              result +
+              string +
+              `data-signal-id="disabled:${interpolation[SignalId]}" disabled="` +
+              interpolation
+            );
+          } else {
+            return (
+              result +
+              string +
+              `<div data-signal-id="innerText:${interpolation[SignalId]}">${interpolation}</div>`
+            );
+          }
         } else {
           return result + string + interpolation;
         }
