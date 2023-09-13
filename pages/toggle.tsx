@@ -15,7 +15,7 @@ export async function handler() {
       <button
         class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
         onclick={event(() => {
-          set("hideText", !get("hideText", (hideText) => hideText));
+          set("hideText", !get("hideText"));
         })}
       >
         TOGGLE TEXT

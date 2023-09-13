@@ -12,6 +12,9 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
   return {
     get<K extends keyof T, X>(key: K, cb?: (value: T[K]) => X) {
       const funId = id++;
+      if (!cb) {
+        cb = (value) => value;
+      }
       functions[funId] = cb;
       return `__SIGNAL(${String(key)},${funId})` as X;
     },
@@ -24,8 +27,12 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
           `<script>
           window.store = ${JSON.stringify(store)};
 
-          function get(key) {
-            return window.store[key];
+          function get(key, cb) {
+            if (cb) {
+              return cb(window.store[key]);
+            } else {
+              return window.store[key];
+            }
           }
       
           function set(key, value) {
