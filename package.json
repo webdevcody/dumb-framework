@@ -9,6 +9,7 @@
     "@elysiajs/html": "^0.6.5",
     "@elysiajs/static": "^0.6.0",
     "@types/html-minifier-terser": "^7.0.0",
+    "classnames": "^2.3.2",
     "elysia": "latest",
     "elysia-compression": "^0.0.3",
     "html-minifier": "^4.0.0",

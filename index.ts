@@ -8,11 +8,7 @@ import { withLiveReload } from "./util/withLiveReload";
 import { withHtml } from "./util/withHtml";
 
 function transformHTML(html: string) {
-  return minify(replaceValueSignals(replaceAttributeSignals(html)), {
-    collapseWhitespace: false,
-    minifyJS: false,
-    minifyCSS: false,
-  });
+  return replaceValueSignals(replaceAttributeSignals(html));
 }
 
 function replaceValueSignals(html: string): string {
@@ -29,20 +25,18 @@ function replaceValueSignals(html: string): string {
   return transformedHTML;
 }
 
-function replaceAttributeSignals(html: string): string {
+function replaceAttributeSignals(html: String): string {
   const regex = /(\w+)="__SIGNAL\(([^,]+),([^,\)]+)\)"/g;
+  const functions = (html as any).functions;
+  const store = (html as any).store;
   const transformedHTML = html.replace(
     regex,
-    (_match, attributeName, signalName, signalValue) => {
-      const dataSignalId = `data-signal-id="${attributeName}:${signalName}"`;
-      const attributeValue = signalValue;
-      if (attributeName === "if") {
-        return `${dataSignalId} style="display: ${
-          attributeValue !== "undefined" ? "block" : "none"
-        };"`;
-      } else {
-        return `${dataSignalId} ${attributeName}="${attributeValue}"`;
-      }
+    (_match, attributeName, signalId, functionId) => {
+      console.log(functions[functionId](store[signalId]));
+      const dataSignalId = `data-signal-id="${attributeName}:${signalId}:${functionId}"`;
+      return `${dataSignalId} ${attributeName}="${functions[functionId](
+        store[signalId]
+      )}"`;
     }
   );
 
@@ -70,7 +64,7 @@ const app = new Elysia()
       });
       // TODO: this feels hacky and it should be configured based on the user of the library
       const html = await handler();
-      return transformHTML(withTailwind(withLiveReload(withHtml(html))));
+      return withTailwind(withLiveReload(withHtml(transformHTML(html))));
     } catch (err) {
       console.log(err);
       set.status = 404;

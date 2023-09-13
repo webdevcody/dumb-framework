@@ -1,0 +1,3 @@
+- [ ] better debugger support
+- [ ] think of a better way to toggle
+- [ ] decide if I want jsx or not
