@@ -8,8 +8,10 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
   const store = initialState;
   const functions = {} as Record<string, any>;
   let id = 0;
+  const templates = {} as Record<string, Function>;
+  let templateId = 0;
 
-  return {
+  const obj = {
     get<K extends keyof T, X>(key: K, cb?: (value: T[K]) => X) {
       const funId = id++;
       if (!cb) {
@@ -17,6 +19,25 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
       }
       functions[funId] = cb;
       return `__SIGNAL(${String(key)},${funId})` as X;
+    },
+    list<K extends keyof T>(key: K, cb?: (entryId: string) => any) {
+      const tid = templateId++;
+      templates[tid + ""] = cb?.toString();
+      return (
+        `__LIST(${key},${tid})` +
+        store[key]
+          .map((entry, idx) => {
+            return cb(entry);
+          })
+          .join("")
+      );
+    },
+    entry<K extends keyof T>(key: K, entryId: string) {
+      const funId = id++;
+      console.log(key);
+      let cb = (arr, idx) => arr[idx];
+      functions[funId] = cb;
+      return `__SIGNAL(${String(key)},${funId},${entryId})`;
     },
     set<K extends keyof T>(event: K, value: T[K]) {
       store[event] = value;
@@ -27,12 +48,36 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
           `<script>
           window.store = ${JSON.stringify(store)};
 
+          elements = {
+            createElement: (type, attributes, text) => {
+              const el = document.createElement(type);
+          
+              // Set attributes
+              if (attributes) {
+                for (const [key, value] of Object.entries(attributes)) {
+                  el.setAttribute(key, value);
+                }
+              }
+          
+              // Set innerHTML/textContent
+              if (text) {
+                el.innerHTML = text;
+              }
+          
+              return el.outerHTML;
+            }
+          };
+
           function get(key, cb) {
             if (cb) {
               return cb(window.store[key]);
             } else {
               return window.store[key];
             }
+          }
+
+          function entry(key, idx) {
+            return ''
           }
       
           function set(key, value) {
@@ -43,12 +88,16 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
                 const signalId = el.dataset.signalId;
                 const mappings = signalId.split(',');
                 for (let mapping of mappings) {
-                  const [attribute, key, functionId] = mapping.split(':');
-                  console.log({attribute, key, value, functionId});
+                  const [attribute, key, functionId, entryIdx] = mapping.split(':');
+                  console.log({attribute, key, value, functionId, entryIdx});
                   if (attribute === 'class') {
-                    el.className = window['fun' + functionId](window.store[key]);
+                    console.log('class', functionId)
+                    el.className = window['fun' + functionId](window.store[key], entryIdx);
+                  } else if (attribute === "list") {
+                    el.innerHTML = window.store[key].map((entry, idx) => window['template' + functionId](entry)).join('')
                   } else {
-                    el[attribute] = window['fun' + functionId](window.store[key]);
+                    console.log('non class', functionId)
+                    el[attribute] = window['fun' + functionId](window.store[key], entryIdx);
                   }
                 }
               });
@@ -61,6 +110,14 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
           `
             )
             .join("\n")}
+
+            ${Object.keys(templates)
+              .map(
+                (templateId) => `
+              template${templateId} = ${templates[templateId].toString()}
+            `
+              )
+              .join("\n")}
         </script>`
       );
       (specialString as any).functions = functions;
@@ -68,4 +125,5 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
       return specialString;
     },
   };
+  return obj;
 }
