@@ -1,10 +1,10 @@
-import { Elysia, ws } from "elysia";
+import { Elysia } from "elysia";
 import path from "path";
 import { staticPlugin } from "@elysiajs/static";
-import { html } from "@elysiajs/html";
 import { withTailwind } from "./util/withTailwind";
 import { withLiveReload } from "./util/withLiveReload";
 import { withHtml } from "./util/withHtml";
+import { compression } from "elysia-compression";
 
 function transformHTML(html: string) {
   return replaceValueSignals(replaceAttributeSignals(replaceLists(html)));
@@ -79,13 +79,12 @@ function replaceLists(html: String): String {
 }
 
 const app = new Elysia()
-  // .use(compression())
+  .use(compression())
   .use(
     staticPlugin({
       assets: "public",
     })
   )
-  .use(html())
   .get("*", async ({ request, set }) => {
     const url = new URL(request.url);
     try {
@@ -99,11 +98,18 @@ const app = new Elysia()
 
       // TODO: this feels hacky and it should be configured based on the user of the library
       const html = await handler();
+      set.headers["content-type"] = "text/html; charset=utf8";
       return withTailwind(withLiveReload(withHtml(transformHTML(html))));
     } catch (err) {
       console.log(err);
       set.status = 404;
       return "file not found";
+    }
+  })
+  .onStart(() => {
+    if (process.env.NODE_ENV === "development") {
+      void fetch("http://localhost:4001/restart");
+      console.log("🦊 Triggering Live Reload");
     }
   })
   .listen(4000);

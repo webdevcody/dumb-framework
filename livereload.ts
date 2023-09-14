@@ -1,23 +1,33 @@
 import { Elysia, ws } from "elysia";
-import watch from "node-watch";
+import { type ElysiaWS } from "elysia/ws";
 
-let wsConnections = [] as any[];
+let wsConnections = new Set<ElysiaWS<any>>();
 
-watch("pages", { recursive: true }, function (evt, name) {
-  for (let connection of wsConnections) {
+function dispatch() {
+  wsConnections.forEach((connection) => {
+    console.log("sending refresh");
     connection.send("refresh");
-  }
-});
+  });
+}
 
 const app = new Elysia()
   .use(ws())
   .ws("/ws", {
     open(ws) {
-      wsConnections.push(ws);
+      console.log("open");
+      wsConnections.add(ws);
     },
     close(ws) {
-      wsConnections = wsConnections.filter((w) => w === ws);
+      console.log("close");
+      wsConnections.delete(ws);
     },
+    message(ws, message) {
+      console.log("message", message);
+    },
+  })
+  .get("/restart", () => {
+    console.log("recieved restart");
+    dispatch();
   })
   .listen(4001);
 

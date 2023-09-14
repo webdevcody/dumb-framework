@@ -7,7 +7,7 @@ type Store = {
 };
 
 export async function handler() {
-  const { get, set, list, withStore } = createStore<Store>({
+  const { set, list, withStore } = createStore<Store>({
     todos: [],
   });
 
@@ -19,10 +19,7 @@ export async function handler() {
             e.preventDefault();
             const formData = new FormData(e.target);
             const todo = formData.get("todo") as string;
-            set(
-              "todos",
-              get("todos", (todos) => [...todos, todo])
-            );
+            set("todos", (todos) => [...todos, todo]);
             e.target.reset();
           })}
         >
@@ -38,11 +35,8 @@ export async function handler() {
                 <button
                   class="bg-red-500 text-white hover:bg-red-600 px-2 py-1 rounded"
                   onclick={event((e, todoText) => {
-                    set(
-                      "todos",
-                      get("todos", (todos) =>
-                        todos.filter((todo) => todo !== todoText)
-                      )
+                    set("todos", (todos) =>
+                      todos.filter((todo) => todo !== todoText)
                     );
                   }, todoString)}
                 >

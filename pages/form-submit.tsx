@@ -16,7 +16,7 @@ export async function handler() {
     disableSubmitButton: true,
   });
 
-  // These are functions that run in the client
+  // These are functions that can run in the client
   const { runAction, withActions } = createActions({
     async getData() {
       return { word: "gg" };

@@ -2,14 +2,14 @@
   "name": "app",
   "version": "1.0.0",
   "scripts": {
-    "dev": "bun run --watch index.ts",
-    "livereload": "bun run --watch livereload.ts"
+    "dev": "concurrently \"bun run --hot index.ts\" \"bun run livereload.ts\""
   },
   "dependencies": {
     "@elysiajs/html": "^0.6.5",
     "@elysiajs/static": "^0.6.0",
     "@types/html-minifier-terser": "^7.0.0",
     "classnames": "^2.3.2",
+    "concurrently": "^8.2.1",
     "elysia": "latest",
     "elysia-compression": "^0.0.3",
     "html-minifier": "^4.0.0",

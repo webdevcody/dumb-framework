@@ -10,7 +10,10 @@ export type Get<T> = <K extends keyof T, X>(
   cb?: (value: T[K]) => X
 ) => X;
 
-export type Set<T> = <K extends keyof T>(event: K, value: T[K]) => void;
+export type Set<T> = <K extends keyof T>(
+  event: K,
+  value: T[K] | ((current: T[K]) => T[K])
+) => void;
 
 export function createStore<T extends Record<string, any>>(initialState: T) {
   // Create an object to store event handlers
@@ -30,8 +33,17 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
     return `__SIGNAL(${String(key)},${funId})` as any;
   };
 
+  const set: Set<T> = (event, cb) => {
+    let value = cb;
+    if (typeof cb === "function") {
+      value = (cb as Function)(store[event]);
+    }
+    (store[event] as any) = value;
+  };
+
   const obj = {
     get,
+    set,
     list<K extends keyof T>(key: K, cb?: (entryId: string) => any) {
       const tid = templateId++;
       templates[tid + ""] = cb?.toString();
@@ -49,9 +61,6 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
       let cb = (arr, idx) => arr[idx];
       functions[funId] = cb;
       return `__SIGNAL(${String(key)},${funId},${entryId})`;
-    },
-    set<K extends keyof T>(event: K, value: T[K]) {
-      store[event] = value;
     },
     withStore(html: string) {
       const specialString = new String(
@@ -94,8 +103,12 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
             return ''
           }
       
-          function set(key, value) {
-            window.store[key] = value
+          function set(key, cb) {
+            let value = cb;
+            if (typeof cb === 'function') {
+              value = cb(window.store[key]);
+            } 
+            window.store[key] = value;
       
             document.querySelectorAll(\`[data-signal-id*="\${key}"]\`)
               .forEach(el => {
