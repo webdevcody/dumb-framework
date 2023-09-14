@@ -1,6 +1,8 @@
 import * as elements from "typed-html";
 
 export function withLiveReload(html: string) {
+  if (process.env.NODE_ENV !== "development") return html;
+
   const liveReloadScript = (
     <script>{`
   function connectWebSocket() {
