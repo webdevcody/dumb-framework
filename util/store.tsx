@@ -21,15 +21,17 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
   const templates = {} as Record<string, Function>;
   let templateId = 0;
 
+  const get: Get<T> = (key, cb) => {
+    const funId = id++;
+    if (!cb) {
+      cb = (value) => value;
+    }
+    functions[funId] = cb;
+    return `__SIGNAL(${String(key)},${funId})` as any;
+  };
+
   const obj = {
-    get<K extends keyof T, X>(key: K, cb?: (value: T[K]) => X) {
-      const funId = id++;
-      if (!cb) {
-        cb = (value) => value;
-      }
-      functions[funId] = cb;
-      return `__SIGNAL(${String(key)},${funId})` as X;
-    },
+    get,
     list<K extends keyof T>(key: K, cb?: (entryId: string) => any) {
       const tid = templateId++;
       templates[tid + ""] = cb?.toString();

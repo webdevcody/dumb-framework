@@ -1,48 +1,18 @@
 import { event } from "../util/events";
-import { Get, Set, createStore } from "../util/store";
+import { createStore } from "../util/store";
 import * as elements from "typed-html";
-import { hide } from "../util/util";
 
 type Store = {
   todos: string[];
-  isLoggedIn: boolean;
 };
-
-function Header(get: Get<Store>, set: Set<Store>) {
-  return (
-    <header class="flex justify-between p-4">
-      LOGO
-      <div>
-        <button
-          class={get("isLoggedIn", (isLoggedIn) => hide(!isLoggedIn))}
-          onclick={event(() => {
-            set("isLoggedIn", true);
-          })}
-        >
-          Log In
-        </button>
-        <button
-          class={get("isLoggedIn", (isLoggedIn) => hide(isLoggedIn))}
-          onclick={event(() => {
-            set("isLoggedIn", false);
-          })}
-        >
-          Log Out
-        </button>
-      </div>
-    </header>
-  );
-}
 
 export async function handler() {
   const { get, set, list, withStore } = createStore<Store>({
     todos: [],
-    isLoggedIn: true,
   });
 
   return withStore(
     <div>
-      {Header(get, set)}
       <div class="container mx-auto mt-8">
         <form
           onsubmit={event((e) => {

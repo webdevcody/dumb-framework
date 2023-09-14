@@ -18,6 +18,9 @@ export async function handler() {
       <a class="text-blue-500 hover:text-blue-600" href="./todo">
         Todo
       </a>
+      <a class="text-blue-500 hover:text-blue-600" href="./header">
+        Header
+      </a>
     </div>
   );
 }
