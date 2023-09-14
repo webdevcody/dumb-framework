@@ -1,5 +1,3 @@
-import classNames from "classnames";
-import { HandlerContext } from "../util/context";
 import { event } from "../util/events";
 import { createStore } from "../util/store";
 import * as elements from "typed-html";

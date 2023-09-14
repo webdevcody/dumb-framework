@@ -87,7 +87,6 @@ const app = new Elysia()
   )
   .use(html())
   .get("*", async ({ request, set }) => {
-    console.log("got request");
     const url = new URL(request.url);
     try {
       const { handler } = await import(
@@ -97,6 +96,7 @@ const app = new Elysia()
           return import(path.resolve("./pages" + url.pathname + "index.tsx"));
         }
       });
+
       // TODO: this feels hacky and it should be configured based on the user of the library
       const html = await handler();
       return withTailwind(withLiveReload(withHtml(transformHTML(html))));

@@ -1,6 +1,16 @@
+import { event } from "./events";
+import { hide } from "./util";
+
 export const SignalSymbol = Symbol("signal");
 export const SignalId = Symbol("id");
 export const SignalStore = Symbol("store");
+
+export type Get<T> = <K extends keyof T, X>(
+  key: K,
+  cb?: (value: T[K]) => X
+) => X;
+
+export type Set<T> = <K extends keyof T>(event: K, value: T[K]) => void;
 
 export function createStore<T extends Record<string, any>>(initialState: T) {
   // Create an object to store event handlers
@@ -34,7 +44,6 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
     },
     entry<K extends keyof T>(key: K, entryId: string) {
       const funId = id++;
-      console.log(key);
       let cb = (arr, idx) => arr[idx];
       functions[funId] = cb;
       return `__SIGNAL(${String(key)},${funId},${entryId})`;
@@ -48,8 +57,11 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
           `<script>
           window.store = ${JSON.stringify(store)};
 
+          window.event = ${event.toString()}
+          window.hide = ${hide.toString()}
+
           elements = {
-            createElement: (type, attributes, text) => {
+            createElement: (type, attributes, ...children) => {
               const el = document.createElement(type);
           
               // Set attributes
@@ -60,8 +72,8 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
               }
           
               // Set innerHTML/textContent
-              if (text) {
-                el.innerHTML = text;
+              if (children) {
+                el.innerHTML = children.join('');
               }
           
               return el.outerHTML;
@@ -89,14 +101,11 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
                 const mappings = signalId.split(',');
                 for (let mapping of mappings) {
                   const [attribute, key, functionId, entryIdx] = mapping.split(':');
-                  console.log({attribute, key, value, functionId, entryIdx});
                   if (attribute === 'class') {
-                    console.log('class', functionId)
                     el.className = window['fun' + functionId](window.store[key], entryIdx);
                   } else if (attribute === "list") {
                     el.innerHTML = window.store[key].map((entry, idx) => window['template' + functionId](entry)).join('')
                   } else {
-                    console.log('non class', functionId)
                     el[attribute] = window['fun' + functionId](window.store[key], entryIdx);
                   }
                 }

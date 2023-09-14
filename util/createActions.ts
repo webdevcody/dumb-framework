@@ -12,7 +12,6 @@ export function createActions<T extends Record<string, Function>>(actions: T) {
             .map((key) => {
               const fun = actions[key].toString();
               if (fun.includes("=>") && fun.includes("async")) {
-                console.log("we are here");
                 return `
                   action_${key} = ${fun}
                   `;

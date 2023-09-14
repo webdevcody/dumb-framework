@@ -13,7 +13,7 @@ export function withHtml(body: string) {
         ></script>
       </head>
 
-      <body>{body}</body>
+      <body class="bg-gray-900 text-white">{body}</body>
     </html>
   );
 }

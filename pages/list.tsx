@@ -1,10 +1,6 @@
-import classNames from "classnames";
-import { HandlerContext } from "../util/context";
 import { event } from "../util/events";
 import { createStore } from "../util/store";
 import * as elements from "typed-html";
-import { hide } from "../util/util";
-import { createActions } from "../util/createActions";
 
 export async function handler() {
   const { get, set, entry, list, withStore } = createStore<{
