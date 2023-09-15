@@ -44,7 +44,7 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
   const obj = {
     get,
     set,
-    list<K extends keyof T>(key: K, cb?: (entryId: string) => any) {
+    list<K extends keyof T>(key: K, cb?: (entry: T[K][0]) => any) {
       const tid = templateId++;
       templates[tid + ""] = cb?.toString();
       return (
@@ -119,7 +119,7 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
                   if (attribute === 'class') {
                     el.className = window['fun' + functionId](window.store[key], entryIdx);
                   } else if (attribute === "list") {
-                    el.innerHTML = window.store[key].map((entry, idx) => window['template' + functionId](entry)).join('')
+                    el.innerHTML = window.store[key].map((entry, idx) => window['template' + functionId](entry)).join('').replaceAll('checked="false"', '')
                   } else {
                     el[attribute] = window['fun' + functionId](window.store[key], entryIdx);
                   }
