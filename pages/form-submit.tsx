@@ -9,8 +9,8 @@ type Store = {
   disableSubmitButton: boolean;
 };
 
-export async function getData() {
-  return { word: "gg" };
+export async function getData(search: string) {
+  return { word: search };
 }
 
 export const handler = createHandler<Store>({
@@ -19,14 +19,14 @@ export const handler = createHandler<Store>({
     searchString: "",
     disableSubmitButton: true,
   },
-  handler({ get, set, bind }) {
+  handler({ set, get, watch }) {
     return (
       <div class="container mx-auto mt-8">
         <form
           onsubmit={event(async (e) => {
             e.preventDefault();
             if (!e.target) return;
-            const result = await getData();
+            const result = await getData(get("searchString"));
             set("result", result.word);
           })}
         >
@@ -41,12 +41,12 @@ export const handler = createHandler<Store>({
           />
           <button
             class="bg-blue-400 rounded px-2 py-1 hover:bg-blue-500 text-white disabled:bg-gray-400"
-            disabled={bind("disableSubmitButton") + ""}
+            disabled={watch("disableSubmitButton") + ""}
           >
             Submit
           </button>
 
-          <div class={bind("result", hide)}>{bind("result")}</div>
+          <div class={watch("result", hide)}>{watch("result")}</div>
         </form>
       </div>
     );

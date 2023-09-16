@@ -40,8 +40,8 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
 
   const obj = {
     get,
-    bind: get,
     set,
+    watch: get,
     getStore() {
       return store;
     },

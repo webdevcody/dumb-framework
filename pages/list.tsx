@@ -8,7 +8,7 @@ export const handler = createHandler<{
   initialState: {
     data: ["a", "b", "c", "d"],
   },
-  handler({ set, list, bind }) {
+  handler({ set, list }) {
     return (
       <div class="container mx-auto mt-8">
         <button

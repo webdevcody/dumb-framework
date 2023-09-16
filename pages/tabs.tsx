@@ -13,12 +13,12 @@ export const handler = createHandler<Store>({
   initialState: {
     tabToDisplay: "second",
   },
-  handler({ get, set, bind, getStore }) {
+  handler({ watch, set }) {
     return (
       <div class="container mx-auto mt-8 flex flex-col gap-12">
         <ul class="flex gap-4">
           <button
-            class={bind("tabToDisplay", (tabToDisplay) =>
+            class={watch("tabToDisplay", (tabToDisplay) =>
               classNames({
                 "text-blue-500": tabToDisplay === "first",
               })
@@ -28,7 +28,7 @@ export const handler = createHandler<Store>({
             First
           </button>
           <button
-            class={bind("tabToDisplay", (tabToDisplay) =>
+            class={watch("tabToDisplay", (tabToDisplay) =>
               classNames({
                 "text-blue-500": tabToDisplay === "second",
               })
@@ -38,7 +38,7 @@ export const handler = createHandler<Store>({
             Second
           </button>
           <button
-            class={bind("tabToDisplay", (tabToDisplay) =>
+            class={watch("tabToDisplay", (tabToDisplay) =>
               classNames({
                 "text-blue-500": tabToDisplay === "third",
               })
@@ -50,21 +50,21 @@ export const handler = createHandler<Store>({
         </ul>
 
         <div
-          class={get("tabToDisplay", (tab) =>
+          class={watch("tabToDisplay", (tab) =>
             classNames(tab !== "first" && "hidden")
           )}
         >
           First
         </div>
         <div
-          class={get("tabToDisplay", (tab) =>
+          class={watch("tabToDisplay", (tab) =>
             classNames(tab !== "second" && "hidden")
           )}
         >
           Second
         </div>
         <div
-          class={get("tabToDisplay", (tab) =>
+          class={watch("tabToDisplay", (tab) =>
             classNames(tab !== "third" && "hidden")
           )}
         >

@@ -4,13 +4,13 @@ import { hide } from "../util/util";
 import { createHandler } from "../util/createHandler";
 
 function Header(store: HeaderPageStore) {
-  const { bind, set } = store;
+  const { watch, set } = store;
   return (
     <header class="flex justify-between p-4">
       LOGO
       <div>
         <button
-          class={bind("isLoggedIn", (isLoggedIn) => hide(!isLoggedIn))}
+          class={watch("isLoggedIn", (isLoggedIn) => hide(!isLoggedIn))}
           onclick={event(() => {
             set("isLoggedIn", true);
           })}
@@ -18,7 +18,7 @@ function Header(store: HeaderPageStore) {
           Log In
         </button>
         <button
-          class={bind("isLoggedIn", (isLoggedIn) => hide(isLoggedIn))}
+          class={watch("isLoggedIn", (isLoggedIn) => hide(isLoggedIn))}
           onclick={event(() => {
             set("isLoggedIn", false);
           })}
@@ -39,12 +39,12 @@ export const handler = createHandler<{
     isLoggedIn: false,
   },
   handler(store) {
-    const { bind } = store;
+    const { watch } = store;
     return (
       <div>
         {Header(store)}
         <div class="container mx-auto mt-8">
-          Are we logged in? {bind("isLoggedIn")}
+          Are we logged in? {watch("isLoggedIn")}
         </div>
       </div>
     );

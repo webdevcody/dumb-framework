@@ -22,7 +22,7 @@ export const handler = createHandler<Store>({
       { text: "repeat....", checked: true },
     ],
   },
-  handler({ set, list, bind }) {
+  handler({ set, list, watch }) {
     return (
       <div>
         <div class="container mx-auto mt-8">
@@ -30,7 +30,7 @@ export const handler = createHandler<Store>({
             class="mb-8"
             onsubmit={event((e) => {
               e.preventDefault();
-              const target = e.target as any;
+              const target = e.target as HTMLFormElement;
               if (!target) return;
               const formData = new FormData(target);
               const todo = formData.get("todo") as string;
@@ -46,10 +46,10 @@ export const handler = createHandler<Store>({
           </form>
 
           <div class="flex gap-4 mb-8">
-            <h2>Total Items {bind("todos", (todos) => todos.length)}</h2>
+            <h2>Total Items {watch("todos", (todos) => todos.length)}</h2>
             <h2>
               Total Checked{" "}
-              {bind("todos", (todos) => todos.filter((t) => t.checked).length)}
+              {watch("todos", (todos) => todos.filter((t) => t.checked).length)}
             </h2>
             <button
               class="bg-blue-500 hover:bg-blue-600 text-white rounded px-2 py-1"
