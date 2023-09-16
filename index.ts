@@ -5,8 +5,10 @@ import { withTailwind } from "./util/withTailwind";
 import { withLiveReload } from "./util/withLiveReload";
 import { withHtml } from "./util/withHtml";
 import { compression } from "elysia-compression";
+import { withScript } from "./util/withScript";
+import { withStore } from "./util/withStore";
 
-function transformHTML(html: string) {
+function transformHTML(html: String) {
   return replaceValueSignals(replaceAttributeSignals(replaceLists(html)));
 }
 
@@ -88,18 +90,37 @@ const app = new Elysia()
   .get("*", async ({ request, set }) => {
     const url = new URL(request.url);
     try {
-      const { handler } = await import(
-        path.resolve("./pages" + url.pathname + ".tsx")
-      ).catch((err) => {
+      let filePath = path.resolve("./pages" + url.pathname + ".tsx");
+
+      const imported = await import(filePath).catch((err) => {
         if (err.message.includes("Cannot find module")) {
-          return import(path.resolve("./pages" + url.pathname + "index.tsx"));
+          filePath = path.resolve("./pages" + url.pathname + "index.tsx");
+          return import(filePath);
         }
       });
 
-      // TODO: this feels hacky and it should be configured based on the user of the library
-      const html = await handler();
+      const bundle = await Bun.build({
+        entrypoints: [filePath],
+      });
+      let bundleText = await bundle.outputs[0].text();
+
+      bundleText += Object.keys(imported)
+        .map((key) => {
+          return `window.${key} = ${key};`;
+        })
+        .join("\n");
+
       set.headers["content-type"] = "text/html; charset=utf8";
-      return withTailwind(withLiveReload(withHtml(transformHTML(html))));
+
+      const { html, store } = await imported.handler();
+
+      return withScript(bundleText)(
+        withTailwind(
+          withLiveReload(
+            withHtml(transformHTML(withStore(store as any, html as any)))
+          )
+        )
+      );
     } catch (err) {
       console.log(err);
       set.status = 404;

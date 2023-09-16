@@ -1,19 +1,16 @@
 import { event } from "../util/events";
-import { Get, Set, createStore } from "../util/store";
 import * as elements from "typed-html";
 import { hide } from "../util/util";
+import { createHandler } from "../util/createHandler";
 
-type Store = {
-  isLoggedIn: boolean;
-};
-
-function Header(get: Get<Store>, set: Set<Store>) {
+function Header(store: HeaderPageStore) {
+  const { bind, set } = store;
   return (
     <header class="flex justify-between p-4">
       LOGO
       <div>
         <button
-          class={get("isLoggedIn", (isLoggedIn) => hide(!isLoggedIn))}
+          class={bind("isLoggedIn", (isLoggedIn) => hide(!isLoggedIn))}
           onclick={event(() => {
             set("isLoggedIn", true);
           })}
@@ -21,7 +18,7 @@ function Header(get: Get<Store>, set: Set<Store>) {
           Log In
         </button>
         <button
-          class={get("isLoggedIn", (isLoggedIn) => hide(isLoggedIn))}
+          class={bind("isLoggedIn", (isLoggedIn) => hide(isLoggedIn))}
           onclick={event(() => {
             set("isLoggedIn", false);
           })}
@@ -33,17 +30,23 @@ function Header(get: Get<Store>, set: Set<Store>) {
   );
 }
 
-export async function handler() {
-  const { get, set, withStore } = createStore<Store>({
-    isLoggedIn: true,
-  });
+type HeaderPageStore = ReturnType<typeof handler>["store"];
 
-  return withStore(
-    <div>
-      {Header(get, set)}
-      <div class="container mx-auto mt-8">
-        Are we logged in? {get("isLoggedIn")}
+export const handler = createHandler<{
+  isLoggedIn: boolean;
+}>({
+  initialState: {
+    isLoggedIn: false,
+  },
+  handler(store) {
+    const { bind } = store;
+    return (
+      <div>
+        {Header(store)}
+        <div class="container mx-auto mt-8">
+          Are we logged in? {bind("isLoggedIn")}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+});

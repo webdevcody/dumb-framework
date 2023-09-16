@@ -1,6 +1,3 @@
-import { event } from "./events";
-import { hide } from "./util";
-
 export const SignalSymbol = Symbol("signal");
 export const SignalId = Symbol("id");
 export const SignalStore = Symbol("store");
@@ -45,6 +42,15 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
     get,
     bind: get,
     set,
+    getStore() {
+      return store;
+    },
+    getFunctions() {
+      return functions;
+    },
+    getTemplates() {
+      return templates;
+    },
     list<K extends keyof T>(key: K, cb?: (entry: T[K][0]) => any) {
       const tid = templateId++;
       templates[tid + ""] = cb?.toString();
@@ -62,92 +68,6 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
       let cb = (arr, idx) => arr[idx];
       functions[funId] = cb;
       return `__SIGNAL(${String(key)},${funId},${entryId})`;
-    },
-    withStore(html: string) {
-      const specialString = new String(
-        html +
-          `<script>
-          window.store = ${JSON.stringify(store)};
-
-          window.event = ${event.toString()}
-          window.hide = ${hide.toString()}
-
-          elements = {
-            createElement: (type, attributes, ...children) => {
-              const el = document.createElement(type);
-          
-              // Set attributes
-              if (attributes) {
-                for (const [key, value] of Object.entries(attributes)) {
-                  el.setAttribute(key, value);
-                }
-              }
-          
-              // Set innerHTML/textContent
-              if (children) {
-                el.innerHTML = children.join('');
-              }
-          
-              return el.outerHTML;
-            }
-          };
-
-          function get(key, cb) {
-            if (cb) {
-              return cb(window.store[key]);
-            } else {
-              return window.store[key];
-            }
-          }
-
-          function entry(key, idx) {
-            return ''
-          }
-      
-          function set(key, cb) {
-            let value = cb;
-            if (typeof cb === 'function') {
-              value = cb(window.store[key]);
-            } 
-            window.store[key] = value;
-      
-            document.querySelectorAll(\`[data-signal-id*="\${key}"]\`)
-              .forEach(el => {
-                const signalId = el.dataset.signalId;
-                const mappings = signalId.split(',');
-                for (let mapping of mappings) {
-                  const [attribute, key, functionId, entryIdx] = mapping.split(':');
-                  if (attribute === 'class') {
-                    el.className = window['fun' + functionId](window.store[key], entryIdx);
-                  } else if (attribute === "list") {
-                    el.innerHTML = window.store[key].map((entry, idx) => window['template' + functionId](entry)).join('').replaceAll('checked="false"', '')
-                  } else {
-                    el[attribute] = window['fun' + functionId](window.store[key], entryIdx);
-                  }
-                }
-              });
-          }
-
-          ${Object.keys(functions)
-            .map(
-              (functionId) => `
-            fun${functionId} = ${functions[functionId].toString()}
-          `
-            )
-            .join("\n")}
-
-            ${Object.keys(templates)
-              .map(
-                (templateId) => `
-              template${templateId} = ${templates[templateId].toString()}
-            `
-              )
-              .join("\n")}
-        </script>`
-      );
-      (specialString as any).functions = functions;
-      (specialString as any).store = store;
-      return specialString;
     },
   };
   return obj;

@@ -1,8 +1,7 @@
 import classNames from "classnames";
 import { event } from "../util/events";
-import { createStore } from "../util/store";
 import * as elements from "typed-html";
-import { createActions } from "../util/createActions";
+import { createHandler } from "../util/createHandler";
 
 const tabs = ["first", "second", "third"] as const;
 type Tab = (typeof tabs)[number];
@@ -10,19 +9,12 @@ type Store = {
   tabToDisplay: Tab;
 };
 
-export async function handler() {
-  const { get, set, bind, withStore } = createStore<Store>({
-    tabToDisplay: "first",
-  });
-
-  const { runAction, withActions } = createActions({
-    isTabSelected(tabToCheck: Tab) {
-      return get("tabToDisplay") === tabToCheck;
-    },
-  });
-
-  return withStore(
-    withActions(
+export const handler = createHandler<Store>({
+  initialState: {
+    tabToDisplay: "second",
+  },
+  handler({ get, set, bind, getStore }) {
+    return (
       <div class="container mx-auto mt-8 flex flex-col gap-12">
         <ul class="flex gap-4">
           <button
@@ -79,6 +71,6 @@ export async function handler() {
           Third
         </div>
       </div>
-    )
-  );
-}
+    );
+  },
+});
