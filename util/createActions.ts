@@ -1,7 +1,10 @@
 export function createActions<T extends Record<string, Function>>(actions: T) {
   return {
-    runAction<K extends keyof T>(key: K): ReturnType<T[K]> {
-      return actions[key]() as ReturnType<T[K]>;
+    runAction<K extends keyof T>(
+      key: K,
+      ...data: Parameters<T[K]>
+    ): ReturnType<T[K]> {
+      return actions[key](...data) as ReturnType<T[K]>;
     },
     withActions(html: string) {
       return (

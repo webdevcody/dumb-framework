@@ -43,6 +43,7 @@ export function createStore<T extends Record<string, any>>(initialState: T) {
 
   const obj = {
     get,
+    bind: get,
     set,
     list<K extends keyof T>(key: K, cb?: (entry: T[K][0]) => any) {
       const tid = templateId++;
