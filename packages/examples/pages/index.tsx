@@ -1,5 +1,5 @@
 import * as elements from "typed-html";
-import { createHandler } from "../util/createHandler";
+import { createHandler } from "@dumb-framework/engine";
 
 export const handler = createHandler({
   handler() {

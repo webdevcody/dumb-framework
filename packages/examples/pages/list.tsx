@@ -1,6 +1,5 @@
-import { createHandler } from "../util/createHandler";
-import { event } from "../util/events";
 import * as elements from "typed-html";
+import { event, createHandler } from "@dumb-framework/engine";
 
 export const handler = createHandler<{
   data: string[];

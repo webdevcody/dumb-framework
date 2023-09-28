@@ -1,7 +1,6 @@
 import classNames from "classnames";
-import { event } from "../util/events";
 import * as elements from "typed-html";
-import { createHandler } from "../util/createHandler";
+import { event, createHandler } from "@dumb-framework/engine";
 
 export const handler = createHandler<{
   hideText: boolean;

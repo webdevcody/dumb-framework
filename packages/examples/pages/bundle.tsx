@@ -1,6 +1,5 @@
 import * as elements from "typed-html";
-import { event } from "../util/events";
-import { createHandler } from "../util/createHandler";
+import { event, createHandler } from "@dumb-framework/engine";
 
 export function doStuff() {
   console.log("stuff");

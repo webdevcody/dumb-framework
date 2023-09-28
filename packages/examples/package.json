@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun index.ts"
+  },
+  "dependencies": {
+    "@elysiajs/html": "^0.6.5",
+    "@elysiajs/static": "^0.7.1",
+    "@types/html-minifier-terser": "^7.0.0",
+    "classnames": "^2.3.2",
+    "concurrently": "^8.2.1",
+    "elysia": "latest",
+    "elysia-compression": "^0.0.3",
+    "html-minifier": "^4.0.0",
+    "html-minifier-terser": "^7.2.0",
+    "i": "^0.3.7",
+    "livereload": "^0.9.3",
+    "node-watch": "^0.7.4",
+    "npm": "^10.1.0",
+    "typed-html": "^3.0.1",
+    "@dumb-framework/engine": "file:../engine"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}

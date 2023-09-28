@@ -1,12 +1,13 @@
 import { Elysia } from "elysia";
 import path from "path";
-import { staticPlugin } from "@elysiajs/static";
+// import { staticPlugin } from "@elysiajs/static";
 import { withTailwind } from "./util/withTailwind";
 import { withLiveReload } from "./util/withLiveReload";
 import { withHtml } from "./util/withHtml";
-import { compression } from "elysia-compression";
+// import { compression } from "elysia-compression";
 import { withScript } from "./util/withScript";
 import { withStore } from "./util/withStore";
+import { mkdir } from "node:fs/promises";
 
 function transformHTML(html: String) {
   return replaceValueSignals(replaceAttributeSignals(replaceLists(html)));
@@ -80,61 +81,102 @@ function replaceLists(html: String): String {
   return transformedHTML;
 }
 
-const app = new Elysia()
-  .use(compression())
-  .use(
-    staticPlugin({
-      assets: "public",
-    })
-  )
-  .get("*", async ({ request, set }) => {
-    const url = new URL(request.url);
-    try {
-      let filePath = path.resolve("./pages" + url.pathname + ".tsx");
+export function runDumb() {
+  const app = new Elysia()
+    // .use(compression())
+    // .use(
+    //   staticPlugin({
+    //     assets: "public",
+    //   })
+    // )
+    .get("*", async ({ request, set }) => {
+      const url = new URL(request.url);
 
-      const imported = await import(filePath).catch((err) => {
-        if (err.message.includes("Cannot find module")) {
-          filePath = path.resolve("./pages" + url.pathname + "index.tsx");
-          return import(filePath);
-        }
-      });
-
-      const bundle = await Bun.build({
-        entrypoints: [filePath],
-      });
-      let bundleText = await bundle.outputs[0].text();
-
-      bundleText += Object.keys(imported)
-        .map((key) => {
-          return `window.${key} = ${key};`;
-        })
-        .join("\n");
-
-      set.headers["content-type"] = "text/html; charset=utf8";
-
-      const { html, store } = await imported.handler();
-
-      return withScript(bundleText)(
-        withTailwind(
-          withLiveReload(
-            withHtml(transformHTML(withStore(store as any, html as any)))
-          )
-        )
+      const file = Bun.file(
+        path.resolve(process.cwd(), "./public/" + url.pathname)
       );
-    } catch (err) {
-      console.log(err);
-      set.status = 404;
-      return "file not found";
-    }
-  })
-  .onStart(() => {
-    if (process.env.NODE_ENV === "development") {
-      void fetch("http://localhost:4001/restart");
-      console.log("🦊 Triggering Live Reload");
-    }
-  })
-  .listen(4000);
 
-console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+      if (await file.exists()) {
+        const contents = file.text();
+        if (url.pathname.endsWith("js")) {
+          set.headers["content-type"] = "text/javascript; charset=utf8";
+        } else {
+          set.headers["content-type"] = "text/html; charset=utf8";
+        }
+
+        return contents;
+      }
+
+      try {
+        let suffix = url.pathname + ".tsx";
+        let filePath = path.resolve(process.cwd(), "./pages" + suffix);
+
+        const imported = await import(filePath).catch((err) => {
+          if (err.message.includes("Cannot find module")) {
+            suffix = url.pathname + "index.tsx";
+            filePath = path.resolve(process.cwd(), "./pages" + suffix);
+            return import(filePath);
+          }
+        });
+
+        const bundle = await Bun.build({
+          entrypoints: [filePath],
+        });
+        let bundleText = await bundle.outputs[0].text();
+
+        const directoryPath = path.resolve(
+          process.cwd(),
+          "./public/js/" + suffix
+        );
+        const parentDirectoryPath = path.dirname(directoryPath);
+
+        await mkdir(parentDirectoryPath, {
+          recursive: true,
+        });
+
+        const jsFilePath = suffix.replace(".tsx", ".js");
+
+        Bun.write(
+          path.resolve(process.cwd(), "./public/js" + jsFilePath),
+          bundleText
+        );
+
+        const extra = Object.keys(imported)
+          .map((key) => {
+            console.log({ key });
+            return `window.${key} = dumb["${key}"];`;
+          })
+          .join("\n");
+
+        set.headers["content-type"] = "text/html; charset=utf8";
+
+        const { html, store } = await imported.handler();
+
+        return withScript(
+          `js${jsFilePath}`,
+          extra
+        )(
+          withTailwind(
+            withLiveReload(
+              withHtml(transformHTML(withStore(store as any, html as any)))
+            )
+          )
+        );
+      } catch (err) {
+        console.log(err);
+        set.status = 404;
+        return "file not found";
+      }
+    })
+    .onStart(() => {
+      if (process.env.NODE_ENV === "development") {
+        void fetch("http://localhost:4001/restart");
+        console.log("🦊 Triggering Live Reload");
+      }
+    })
+    .listen(4000);
+
+  console.log(
+    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  );
+}
