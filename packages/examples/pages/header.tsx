@@ -1,5 +1,5 @@
 import * as elements from "typed-html";
-import { event, createHandler, hide } from "@dumb-framework/engine";
+import { event, createHandler, hide } from "@dumb-framework/engine/client";
 
 function Header(store: HeaderPageStore) {
   const { watch, set } = store;

@@ -1,5 +1,5 @@
 import * as elements from "typed-html";
-import { event, createHandler } from "@dumb-framework/engine";
+import { event, createHandler } from "@dumb-framework/engine/client";
 
 type Store = {
   todos: {

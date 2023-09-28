@@ -13,7 +13,7 @@
     "concurrently": "^8.2.1",
     "dom-parser": "^0.1.6",
     "elysia": "latest",
-    "elysia-compression": "^0.0.3",
+    "elysia-compression": "git://github.com/webdevcody/elysia-compression.git#fixes-with-dist",
     "html-minifier": "^4.0.0",
     "html-minifier-terser": "^7.2.0",
     "i": "^0.3.7",

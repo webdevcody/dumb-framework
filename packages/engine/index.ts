@@ -1,9 +1,7 @@
 import { Elysia } from "elysia";
 import path from "path";
-// import { staticPlugin } from "@elysiajs/static";
 import { withLiveReload } from "./util/withLiveReload";
-import { withHtml } from "./util/withHtml";
-// import { compression } from "elysia-compression";
+import { compression } from "elysia-compression";
 import { withScript } from "./util/withScript";
 import { withStore } from "./util/withStore";
 import { mkdir } from "node:fs/promises";
@@ -82,7 +80,7 @@ function replaceLists(html: String): String {
 
 export function runDumb() {
   const app = new Elysia()
-    // .use(compression())
+    .use(compression())
     // .use(
     //   staticPlugin({
     //     assets: "public",
@@ -150,18 +148,11 @@ export function runDumb() {
 
         set.headers["content-type"] = "text/html; charset=utf8";
 
-        const { html, store, styles } = await imported.handler();
+        const { html, store } = await imported.handler();
         const htmlToReturn = withScript(
           `js${jsFilePath}`,
           extra
-        )(
-          withLiveReload(
-            withHtml(
-              transformHTML(withStore(store as any, html as any)),
-              styles
-            )
-          )
-        );
+        )(withLiveReload(transformHTML(withStore(store as any, html as any))));
         return htmlToReturn;
       } catch (err) {
         console.log(err);

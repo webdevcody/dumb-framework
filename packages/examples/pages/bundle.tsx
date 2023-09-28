@@ -6,18 +6,23 @@ export function doStuff() {
 }
 
 export const handler = createHandler({
-  styles: ["css/tw.css"],
   handler() {
     return (
-      <body class="bg-gray-800 text-white">
-        <button
-          onclick={event(() => {
-            doStuff();
-          })}
-        >
-          Log Stuff!!
-        </button>
-      </body>
+      <html>
+        <head>
+          <title>Bundle</title>
+          <link rel="stylesheet" href="css/tw.css" />
+        </head>
+        <body class="bg-gray-800 text-white">
+          <button
+            onclick={event(() => {
+              doStuff();
+            })}
+          >
+            Log Stuff!@
+          </button>
+        </body>
+      </html>
     );
   },
 });
