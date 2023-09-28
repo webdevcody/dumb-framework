@@ -1,7 +1,6 @@
 import { Elysia } from "elysia";
 import path from "path";
 // import { staticPlugin } from "@elysiajs/static";
-import { withTailwind } from "./util/withTailwind";
 import { withLiveReload } from "./util/withLiveReload";
 import { withHtml } from "./util/withHtml";
 // import { compression } from "elysia-compression";
@@ -111,13 +110,15 @@ export function runDumb() {
         let suffix = url.pathname + ".tsx";
         let filePath = path.resolve(process.cwd(), "./pages" + suffix);
 
-        const imported = await import(filePath).catch((err) => {
-          if (err.message.includes("Cannot find module")) {
-            suffix = url.pathname + "index.tsx";
-            filePath = path.resolve(process.cwd(), "./pages" + suffix);
-            return import(filePath);
+        const imported = await import(filePath + `?update=${Date.now()}`).catch(
+          (err) => {
+            if (err.message.includes("Cannot find module")) {
+              suffix = url.pathname + "index.tsx";
+              filePath = path.resolve(process.cwd(), "./pages" + suffix);
+              return import(filePath + `?update=${Date.now()}`);
+            }
           }
-        });
+        );
 
         const bundle = await Bun.build({
           entrypoints: [filePath],
@@ -143,35 +144,29 @@ export function runDumb() {
 
         const extra = Object.keys(imported)
           .map((key) => {
-            console.log({ key });
             return `window.${key} = dumb["${key}"];`;
           })
           .join("\n");
 
         set.headers["content-type"] = "text/html; charset=utf8";
 
-        const { html, store } = await imported.handler();
-
-        return withScript(
+        const { html, store, styles } = await imported.handler();
+        const htmlToReturn = withScript(
           `js${jsFilePath}`,
           extra
         )(
-          withTailwind(
-            withLiveReload(
-              withHtml(transformHTML(withStore(store as any, html as any)))
+          withLiveReload(
+            withHtml(
+              transformHTML(withStore(store as any, html as any)),
+              styles
             )
           )
         );
+        return htmlToReturn;
       } catch (err) {
         console.log(err);
         set.status = 404;
         return "file not found";
-      }
-    })
-    .onStart(() => {
-      if (process.env.NODE_ENV === "development") {
-        void fetch("http://localhost:4001/restart");
-        console.log("🦊 Triggering Live Reload");
       }
     })
     .listen(4000);

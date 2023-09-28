@@ -1,6 +1,6 @@
 import * as elements from "typed-html";
 
-export function withHtml(body: string) {
+export function withHtml(body: string, styles: string[]) {
   return (
     <html>
       <head>
@@ -11,9 +11,10 @@ export function withHtml(body: string) {
           crossorigin="anonymous"
           referrerpolicy="no-referrer"
         ></script>
+        {`${styles.map((style) => <link rel="stylesheet" href={style} />)}`}
       </head>
 
-      <body class="bg-gray-900 text-white">{body}</body>
+      {body}
     </html>
   );
 }

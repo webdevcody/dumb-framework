@@ -1,32 +1,35 @@
 import { Elysia } from "elysia";
+import watch from "node-watch";
 
 let wsConnections = new Set<any>();
 
-function dispatch() {
+function reloadAllBrowsers() {
   wsConnections.forEach((connection) => {
-    console.log("sending refresh");
     connection.send("refresh");
   });
+  wsConnections = new Set<any>();
 }
 
-export function startLiveReloadServer() {
+export function startLiveReloadServer(
+  watchDir: string,
+  beforeRefresh: () => Promise<void>
+) {
+  watch(watchDir, { recursive: true }, async function (evt, name) {
+    await beforeRefresh();
+    reloadAllBrowsers();
+  });
+
   const app = new Elysia()
     .ws("/ws", {
       open(ws) {
-        console.log("open");
         wsConnections.add(ws);
       },
       close(ws) {
-        console.log("close");
         wsConnections.delete(ws);
       },
       message(ws, message) {
         console.log("message", message);
       },
-    })
-    .get("/restart", () => {
-      console.log("recieved restart");
-      dispatch();
     })
     .listen(4001);
 
